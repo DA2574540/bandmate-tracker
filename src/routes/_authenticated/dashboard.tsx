@@ -1,12 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
+import { useServerFn } from "@tanstack/react-start";
 import {
   Users,
   CalendarDays,
   ClipboardCheck,
-  FileText,
   ShieldAlert,
   ChevronRight,
 } from "lucide-react";
+import { getDashboardStats } from "@/lib/band.functions";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -21,6 +23,14 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
 });
 
 function DashboardPage() {
+  const fetchStats = useServerFn(getDashboardStats);
+  const { data: stats, isLoading } = useQuery({
+    queryKey: ["dashboard-stats"],
+    queryFn: () => fetchStats(),
+  });
+
+  const todayEventCount = stats?.todayEvents.length ?? 0;
+
   return (
     <div className="min-h-screen bg-background pb-20">
       <header className="border-b border-border bg-card">
@@ -35,11 +45,50 @@ function DashboardPage() {
 
       <main className="mx-auto max-w-5xl space-y-6 px-4 py-6">
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <StatCard label="Total Player" value="—" icon={<Users className="h-5 w-5" />} />
-          <StatCard label="Latihan Hari Ini" value="—" icon={<CalendarDays className="h-5 w-5" />} />
-          <StatCard label="Hadir" value="—" icon={<ClipboardCheck className="h-5 w-5" />} />
-          <StatCard label="Izin/Sakit" value="—" icon={<ShieldAlert className="h-5 w-5" />} />
+          <StatCard
+            label="Total Player"
+            value={isLoading ? "—" : String(stats?.totalPlayers ?? 0)}
+            icon={<Users className="h-5 w-5" />}
+          />
+          <StatCard
+            label="Latihan Hari Ini"
+            value={isLoading ? "—" : String(todayEventCount)}
+            icon={<CalendarDays className="h-5 w-5" />}
+          />
+          <StatCard
+            label="Hadir"
+            value={isLoading ? "—" : String(stats?.todayAttendance.hadir ?? 0)}
+            icon={<ClipboardCheck className="h-5 w-5" />}
+          />
+          <StatCard
+            label="Izin/Sakit"
+            value={isLoading ? "—" : String(stats?.todayAttendance.izinSakit ?? 0)}
+            icon={<ShieldAlert className="h-5 w-5" />}
+          />
         </section>
+
+        {todayEventCount > 0 && (
+          <section className="rounded-xl border border-border bg-card p-4">
+            <h2 className="mb-3 font-semibold text-card-foreground">Jadwal Hari Ini</h2>
+            <ul className="space-y-2">
+              {stats?.todayEvents.map((event) => (
+                <li key={event.id}>
+                  <Link
+                    to="/events/$id/attendance"
+                    params={{ id: event.id }}
+                    className="flex items-center justify-between rounded-lg border border-border p-3 transition-colors hover:bg-accent"
+                  >
+                    <div>
+                      <p className="font-medium text-card-foreground">{event.name}</p>
+                      <p className="text-sm text-muted-foreground capitalize">{event.event_type}</p>
+                    </div>
+                    <ChevronRight className="h-5 w-5 text-muted-foreground" />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
 
         <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <ActionCard
