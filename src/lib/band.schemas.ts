@@ -5,12 +5,20 @@ export const eventTypeSchema = z.enum(["latihan", "perform", "kumpul", "lainnya"
 export const attendanceStatusSchema = z.enum(["hadir", "izin", "sakit", "alfa"]);
 export const permissionTypeSchema = z.enum(["izin", "sakit"]);
 
+function nullableString(max: number) {
+  return z
+    .string()
+    .max(max)
+    .optional()
+    .transform((v) => (v === undefined || v === "" ? null : v));
+}
+
 export const playerSchema = z.object({
   name: z.string().min(1, "Nama wajib diisi").max(100),
-  nickname: z.string().max(50).optional(),
-  phone: z.string().max(30).optional(),
-  division: z.string().max(50).optional(),
-  instrument: z.string().max(50).optional(),
+  nickname: nullableString(50),
+  phone: nullableString(30),
+  division: nullableString(50),
+  instrument: nullableString(50),
   status: playerStatusSchema.default("active"),
 });
 
@@ -18,13 +26,13 @@ export const eventSchema = z.object({
   name: z.string().min(1, "Nama wajib diisi").max(100),
   event_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format tanggal tidak valid"),
   event_type: eventTypeSchema.default("latihan"),
-  description: z.string().max(500).optional(),
+  description: nullableString(500),
 });
 
 export const attendanceRecordSchema = z.object({
   player_id: z.string().uuid(),
   status: attendanceStatusSchema,
-  note: z.string().max(200).optional(),
+  note: nullableString(200),
 });
 
 export const saveAttendanceSchema = z.object({
@@ -36,7 +44,7 @@ export const permissionSchema = z.object({
   player_id: z.string().uuid(),
   permission_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format tanggal tidak valid"),
   type: permissionTypeSchema,
-  reason: z.string().max(500).optional(),
+  reason: nullableString(500),
 });
 
 export const reportRangeSchema = z.object({

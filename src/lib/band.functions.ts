@@ -1,3 +1,4 @@
+import { z } from "zod";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import {
@@ -149,7 +150,7 @@ export const saveAttendance = createServerFn({ method: "POST" })
       event_id,
       player_id: record.player_id,
       status: record.status,
-      note: record.note ?? null,
+      note: record.note,
       user_id: context.userId,
     }));
 
@@ -207,7 +208,7 @@ export const getDashboardStats = createServerFn({ method: "GET" })
   .handler(async ({ context }) => {
     const today = new Date().toISOString().split("T")[0];
 
-    const [playersResult, eventsResult, todayEventsResult, attendanceResult] = await Promise.all([
+    const [playersResult, eventsResult, todayEventsResult] = await Promise.all([
       context.supabase.from("players").select("id", { count: "exact" }).eq("user_id", context.userId),
       context.supabase.from("events").select("id", { count: "exact" }).eq("user_id", context.userId),
       context.supabase
@@ -216,26 +217,24 @@ export const getDashboardStats = createServerFn({ method: "GET" })
         .eq("user_id", context.userId)
         .eq("event_date", today)
         .order("name", { ascending: true }),
-      context.supabase
-        .from("attendances")
-        .select("status")
-        .eq("user_id", context.userId)
-        .in(
-          "event_id",
-          (await context.supabase
-            .from("events")
-            .select("id")
-            .eq("user_id", context.userId)
-            .eq("event_date", today)
-            .eq("user_id", context.userId)
-          )?.data?.map((e) => e.id) ?? [],
-        ),
     ]);
 
     if (playersResult.error) throw playersResult.error;
     if (eventsResult.error) throw eventsResult.error;
     if (todayEventsResult.error) throw todayEventsResult.error;
-    if (attendanceResult.error) throw attendanceResult.error;
+
+    const todayEventIds = todayEventsResult.data?.map((e) => e.id) ?? [];
+
+    let attendanceResult = { data: [] as { status: string }[], error: null };
+    if (todayEventIds.length > 0) {
+      const res = await context.supabase
+        .from("attendances")
+        .select("status")
+        .eq("user_id", context.userId)
+        .in("event_id", todayEventIds);
+      attendanceResult = res as typeof attendanceResult;
+      if (attendanceResult.error) throw attendanceResult.error;
+    }
 
     const hadir = attendanceResult.data?.filter((a) => a.status === "hadir").length ?? 0;
     const izinSakit =
@@ -271,7 +270,7 @@ export const getAttendanceReport = createServerFn({ method: "GET" })
         .order("event_date", { ascending: true }),
       context.supabase
         .from("attendances")
-        .select("player_id, status")
+        .select("player_id, event_id, status")
         .eq("user_id", context.userId),
     ]);
 
@@ -282,16 +281,16 @@ export const getAttendanceReport = createServerFn({ method: "GET" })
     const eventIds = new Set(eventsResult.data?.map((e) => e.id) ?? []);
     const totalEvents = eventIds.size;
 
-    const attendanceByPlayer = new Map<string, Record<string, number>>();
+    const attendanceByPlayer = new Map<string, { hadir: number; izin: number; sakit: number; alfa: number }>();
     for (const record of attendanceResult.data ?? []) {
-      if (!eventIds.has(record.player_id)) continue;
+      if (!eventIds.has(record.event_id)) continue;
       const map = attendanceByPlayer.get(record.player_id) ?? {
         hadir: 0,
         izin: 0,
         sakit: 0,
         alfa: 0,
       };
-      map[record.status] = (map[record.status] ?? 0) + 1;
+      map[record.status as keyof typeof map] = (map[record.status as keyof typeof map] ?? 0) + 1;
       attendanceByPlayer.set(record.player_id, map);
     }
 
@@ -315,6 +314,3 @@ export const getAttendanceReport = createServerFn({ method: "GET" })
 
     return { report, totalEvents };
   });
-
-// Need z for inline validators
-import { z } from "zod";
