@@ -13,6 +13,11 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as AuthenticatedEventsRouteImport } from './routes/_authenticated/events'
+import { Route as AuthenticatedPermissionsRouteImport } from './routes/_authenticated/permissions'
+import { Route as AuthenticatedPlayersRouteImport } from './routes/_authenticated/players'
+import { Route as AuthenticatedReportsRouteImport } from './routes/_authenticated/reports'
+import { Route as AuthenticatedEventsIdAttendanceRouteImport } from './routes/_authenticated/events.$id.attendance'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -33,16 +38,53 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedEventsRoute = AuthenticatedEventsRouteImport.update({
+  id: '/events',
+  path: '/events',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedPermissionsRoute =
+  AuthenticatedPermissionsRouteImport.update({
+    id: '/permissions',
+    path: '/permissions',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedPlayersRoute = AuthenticatedPlayersRouteImport.update({
+  id: '/players',
+  path: '/players',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedReportsRoute = AuthenticatedReportsRouteImport.update({
+  id: '/reports',
+  path: '/reports',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedEventsIdAttendanceRoute =
+  AuthenticatedEventsIdAttendanceRouteImport.update({
+    id: '/$id/attendance',
+    path: '/$id/attendance',
+    getParentRoute: () => AuthenticatedEventsRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/events': typeof AuthenticatedEventsRouteWithChildren
+  '/permissions': typeof AuthenticatedPermissionsRoute
+  '/players': typeof AuthenticatedPlayersRoute
+  '/reports': typeof AuthenticatedReportsRoute
+  '/events/$id/attendance': typeof AuthenticatedEventsIdAttendanceRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
+  '/events': typeof AuthenticatedEventsRouteWithChildren
+  '/permissions': typeof AuthenticatedPermissionsRoute
+  '/players': typeof AuthenticatedPlayersRoute
+  '/reports': typeof AuthenticatedReportsRoute
+  '/events/$id/attendance': typeof AuthenticatedEventsIdAttendanceRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -50,14 +92,44 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteWithChildren
   '/auth': typeof AuthRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/events': typeof AuthenticatedEventsRouteWithChildren
+  '/_authenticated/permissions': typeof AuthenticatedPermissionsRoute
+  '/_authenticated/players': typeof AuthenticatedPlayersRoute
+  '/_authenticated/reports': typeof AuthenticatedReportsRoute
+  '/_authenticated/events/$id/attendance': typeof AuthenticatedEventsIdAttendanceRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth' | '/dashboard'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/events'
+    | '/permissions'
+    | '/players'
+    | '/reports'
+    | '/events/$id/attendance'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/auth' | '/dashboard'
+  to:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/events'
+    | '/permissions'
+    | '/players'
+    | '/reports'
+    | '/events/$id/attendance'
   id:
-    '__root__' | '/' | '/_authenticated' | '/auth' | '/_authenticated/dashboard'
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/events'
+    | '/_authenticated/permissions'
+    | '/_authenticated/players'
+    | '/_authenticated/reports'
+    | '/_authenticated/events/$id/attendance'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -96,15 +168,69 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/_authenticated/events': {
+      id: '/_authenticated/events'
+      path: '/events'
+      fullPath: '/events'
+      preLoaderRoute: typeof AuthenticatedEventsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/permissions': {
+      id: '/_authenticated/permissions'
+      path: '/permissions'
+      fullPath: '/permissions'
+      preLoaderRoute: typeof AuthenticatedPermissionsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/players': {
+      id: '/_authenticated/players'
+      path: '/players'
+      fullPath: '/players'
+      preLoaderRoute: typeof AuthenticatedPlayersRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/reports': {
+      id: '/_authenticated/reports'
+      path: '/reports'
+      fullPath: '/reports'
+      preLoaderRoute: typeof AuthenticatedReportsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/events/$id/attendance': {
+      id: '/_authenticated/events/$id/attendance'
+      path: '/$id/attendance'
+      fullPath: '/events/$id/attendance'
+      preLoaderRoute: typeof AuthenticatedEventsIdAttendanceRouteImport
+      parentRoute: typeof AuthenticatedEventsRoute
+    }
   }
 }
 
+interface AuthenticatedEventsRouteChildren {
+  AuthenticatedEventsIdAttendanceRoute: typeof AuthenticatedEventsIdAttendanceRoute
+}
+
+const AuthenticatedEventsRouteChildren: AuthenticatedEventsRouteChildren = {
+  AuthenticatedEventsIdAttendanceRoute: AuthenticatedEventsIdAttendanceRoute,
+}
+
+const AuthenticatedEventsRouteWithChildren =
+  AuthenticatedEventsRoute._addFileChildren(AuthenticatedEventsRouteChildren)
+
 interface AuthenticatedRouteChildren {
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedEventsRoute: typeof AuthenticatedEventsRouteWithChildren
+  AuthenticatedPermissionsRoute: typeof AuthenticatedPermissionsRoute
+  AuthenticatedPlayersRoute: typeof AuthenticatedPlayersRoute
+  AuthenticatedReportsRoute: typeof AuthenticatedReportsRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedEventsRoute: AuthenticatedEventsRouteWithChildren,
+  AuthenticatedPermissionsRoute: AuthenticatedPermissionsRoute,
+  AuthenticatedPlayersRoute: AuthenticatedPlayersRoute,
+  AuthenticatedReportsRoute: AuthenticatedReportsRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
