@@ -6,11 +6,7 @@ export const attendanceStatusSchema = z.enum(["hadir", "izin", "sakit", "alfa"])
 export const permissionTypeSchema = z.enum(["izin", "sakit"]);
 
 function nullableString(max: number) {
-  return z
-    .string()
-    .max(max)
-    .optional()
-    .transform((v) => (v === undefined || v === "" ? null : v));
+  return z.string().max(max).nullable().default(null);
 }
 
 export const playerSchema = z.object({

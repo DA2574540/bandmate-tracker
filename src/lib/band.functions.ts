@@ -206,8 +206,7 @@ export const deletePermission = createServerFn({ method: "POST" })
 export const getDashboardStats = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const todayParts = new Date().toISOString().split("T");
-    const today = todayParts[0] ?? new Date().toISOString().slice(0, 10);
+    const today = new Date().toISOString().slice(0, 10);
 
     const [playersResult, eventsResult, todayEventsResult] = await Promise.all([
       context.supabase.from("players").select("id", { count: "exact" }).eq("user_id", context.userId),
