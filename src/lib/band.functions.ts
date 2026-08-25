@@ -9,17 +9,6 @@ import {
   reportRangeSchema,
 } from "./band.schemas";
 
-function nullifyOptional<T extends Record<string, unknown>>(obj: T): {
-  [K in keyof T]: T[K] extends string | undefined ? string | null : T[K];
-} {
-  const next = { ...obj } as Record<string, unknown>;
-  for (const key of Object.keys(next)) {
-    const value = next[key];
-    if (value === undefined || value === "") next[key] = null;
-  }
-  return next as { [K in keyof T]: T[K] extends string | undefined ? string | null : T[K] };
-}
-
 export const getPlayers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -39,7 +28,7 @@ export const createPlayer = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const { data: result, error } = await context.supabase
       .from("players")
-      .insert({ ...nullifyOptional(data), user_id: context.userId })
+      .insert({ ...data, user_id: context.userId })
       .select()
       .single();
 
@@ -58,7 +47,7 @@ export const updatePlayer = createServerFn({ method: "POST" })
     const { id, ...rest } = data;
     const { data: result, error } = await context.supabase
       .from("players")
-      .update(nullifyOptional(rest))
+      .update(rest)
       .eq("id", id)
       .eq("user_id", context.userId)
       .select()
@@ -101,7 +90,7 @@ export const createEvent = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const { data: result, error } = await context.supabase
       .from("events")
-      .insert({ ...nullifyOptional(data), user_id: context.userId })
+      .insert({ ...data, user_id: context.userId })
       .select()
       .single();
 
@@ -161,7 +150,7 @@ export const saveAttendance = createServerFn({ method: "POST" })
       event_id,
       player_id: record.player_id,
       status: record.status,
-      note: record.note ?? null,
+      note: record.note,
       user_id: context.userId,
     }));
 
@@ -192,7 +181,7 @@ export const createPermission = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const { data: result, error } = await context.supabase
       .from("permissions")
-      .insert({ ...nullifyOptional(data), user_id: context.userId })
+      .insert({ ...data, user_id: context.userId })
       .select()
       .single();
 
