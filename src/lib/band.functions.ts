@@ -9,6 +9,17 @@ import {
   reportRangeSchema,
 } from "./band.schemas";
 
+function nullifyOptional<T extends Record<string, unknown>>(obj: T): {
+  [K in keyof T]: T[K] extends string | undefined ? string | null : T[K];
+} {
+  const next = { ...obj } as Record<string, unknown>;
+  for (const key of Object.keys(next)) {
+    const value = next[key];
+    if (value === undefined || value === "") next[key] = null;
+  }
+  return next as { [K in keyof T]: T[K] extends string | undefined ? string | null : T[K] };
+}
+
 export const getPlayers = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -28,7 +39,7 @@ export const createPlayer = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const { data: result, error } = await context.supabase
       .from("players")
-      .insert({ ...data, user_id: context.userId })
+      .insert({ ...nullifyOptional(data), user_id: context.userId })
       .select()
       .single();
 
@@ -47,7 +58,7 @@ export const updatePlayer = createServerFn({ method: "POST" })
     const { id, ...rest } = data;
     const { data: result, error } = await context.supabase
       .from("players")
-      .update(rest)
+      .update(nullifyOptional(rest))
       .eq("id", id)
       .eq("user_id", context.userId)
       .select()
@@ -90,7 +101,7 @@ export const createEvent = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const { data: result, error } = await context.supabase
       .from("events")
-      .insert({ ...data, user_id: context.userId })
+      .insert({ ...nullifyOptional(data), user_id: context.userId })
       .select()
       .single();
 
@@ -150,7 +161,7 @@ export const saveAttendance = createServerFn({ method: "POST" })
       event_id,
       player_id: record.player_id,
       status: record.status,
-      note: record.note,
+      note: record.note ?? null,
       user_id: context.userId,
     }));
 
@@ -181,7 +192,7 @@ export const createPermission = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const { data: result, error } = await context.supabase
       .from("permissions")
-      .insert({ ...data, user_id: context.userId })
+      .insert({ ...nullifyOptional(data), user_id: context.userId })
       .select()
       .single();
 
@@ -206,8 +217,7 @@ export const deletePermission = createServerFn({ method: "POST" })
 export const getDashboardStats = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    const todayParts = new Date().toISOString().split("T");
-    const today = todayParts[0] ?? new Date().toISOString().slice(0, 10);
+    const today = new Date().toISOString().slice(0, 10);
 
     const [playersResult, eventsResult, todayEventsResult] = await Promise.all([
       context.supabase.from("players").select("id", { count: "exact" }).eq("user_id", context.userId),
