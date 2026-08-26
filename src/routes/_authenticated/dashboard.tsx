@@ -7,6 +7,7 @@ import {
   ClipboardCheck,
   ShieldAlert,
   ChevronRight,
+  FileText,
 } from "lucide-react";
 import { getDashboardStats } from "@/lib/band.functions";
 

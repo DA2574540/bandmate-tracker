@@ -6,7 +6,7 @@ export const attendanceStatusSchema = z.enum(["hadir", "izin", "sakit", "alfa"])
 export const permissionTypeSchema = z.enum(["izin", "sakit"]);
 
 function nullableString(max: number) {
-  return z.string().max(max).nullable().default(null);
+  return z.string().max(max).nullable();
 }
 
 export const playerSchema = z.object({
@@ -15,13 +15,13 @@ export const playerSchema = z.object({
   phone: nullableString(30),
   division: nullableString(50),
   instrument: nullableString(50),
-  status: playerStatusSchema.default("active"),
+  status: playerStatusSchema,
 });
 
 export const eventSchema = z.object({
   name: z.string().min(1, "Nama wajib diisi").max(100),
   event_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Format tanggal tidak valid"),
-  event_type: eventTypeSchema.default("latihan"),
+  event_type: eventTypeSchema,
   description: nullableString(500),
 });
 

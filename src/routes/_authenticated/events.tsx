@@ -172,7 +172,7 @@ function EventForm({
   onSubmit: (data: EventForm) => void;
   submitLabel: string;
 }) {
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toISOString().slice(0, 10);
   const {
     register,
     handleSubmit,
@@ -181,7 +181,12 @@ function EventForm({
     formState: { errors },
   } = useForm<EventForm>({
     resolver: zodResolver(eventSchema),
-    defaultValues: defaultValues ?? { event_date: today, event_type: "latihan" },
+    defaultValues: defaultValues ?? {
+      name: "",
+      event_date: today,
+      event_type: "latihan",
+      description: null,
+    },
   });
 
   const eventType = watch("event_type");

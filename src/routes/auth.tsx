@@ -1,4 +1,4 @@
-import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
+import { createFileRoute, useRouter, Link, useSearch } from "@tanstack/react-router";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -24,11 +24,16 @@ export const Route = createFileRoute("/auth")({
       { property: "og:description", content: "Masuk ke aplikasi Provost Band." },
     ],
   }),
+  validateSearch: z.object({
+    redirect: z.string().optional(),
+  }),
   component: AuthPage,
 });
 
 function AuthPage() {
   const router = useRouter();
+  const search = useSearch({ from: "/auth" });
+  const redirect = typeof search.redirect === "string" ? search.redirect : "/dashboard";
   const [mode, setMode] = useState<"login" | "signup">("login");
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
@@ -51,7 +56,7 @@ function AuthPage() {
         });
         if (error) throw error;
         toast.success("Berhasil masuk");
-        await router.navigate({ to: "/dashboard" });
+        await router.navigate({ to: redirect as "/dashboard" });
       } else {
         const { error } = await supabase.auth.signUp({
           email: values.email,
@@ -76,7 +81,7 @@ function AuthPage() {
       if (result.error) throw result.error;
       if (!result.redirected) {
         toast.success("Berhasil masuk dengan Google");
-        await router.navigate({ to: "/dashboard" });
+        await router.navigate({ to: redirect as "/dashboard" });
       }
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Gagal masuk dengan Google");
