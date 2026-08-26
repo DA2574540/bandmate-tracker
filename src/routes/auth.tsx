@@ -24,6 +24,9 @@ export const Route = createFileRoute("/auth")({
       { property: "og:description", content: "Masuk ke aplikasi Provost Band." },
     ],
   }),
+  validateSearch: z.object({
+    redirect: z.string().optional(),
+  }),
   component: AuthPage,
 });
 
