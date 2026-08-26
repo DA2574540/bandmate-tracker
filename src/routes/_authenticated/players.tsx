@@ -142,7 +142,17 @@ function PlayersPage() {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8"
-                      onClick={() => setEditing({ ...player, id: player.id })}
+                      onClick={() =>
+                        setEditing({
+                          id: player.id,
+                          name: player.name,
+                          nickname: player.nickname,
+                          phone: player.phone,
+                          division: player.division,
+                          instrument: player.instrument,
+                          status: player.status as PlayerForm["status"],
+                        })
+                      }
                     >
                       <Pencil className="h-4 w-4" />
                     </Button>
@@ -217,7 +227,14 @@ function PlayerForm({
     formState: { errors },
   } = useForm<PlayerForm>({
     resolver: zodResolver(playerSchema),
-    defaultValues: defaultValues ?? { status: "active" },
+    defaultValues: defaultValues ?? {
+      name: "",
+      nickname: null,
+      phone: null,
+      division: null,
+      instrument: null,
+      status: "active",
+    },
   });
 
   const status = watch("status");

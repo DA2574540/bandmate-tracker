@@ -187,7 +187,7 @@ function PermissionForm({
   onSubmit: (data: PermissionForm) => void;
   submitLabel: string;
 }) {
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date().toISOString().slice(0, 10);
   const {
     register,
     handleSubmit,
@@ -196,7 +196,12 @@ function PermissionForm({
     formState: { errors },
   } = useForm<PermissionForm>({
     resolver: zodResolver(permissionSchema),
-    defaultValues: { permission_date: today, type: "izin" },
+    defaultValues: {
+      player_id: players[0]?.id ?? "",
+      permission_date: today,
+      type: "izin",
+      reason: null,
+    },
   });
 
   const type = watch("type");
