@@ -1,0 +1,4 @@
+[[redirects]]
+from = "/*"
+to = "DA2574540/bandmate-tracker/src/routes/index.tsx"
+status = 200
