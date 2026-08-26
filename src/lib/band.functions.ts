@@ -314,3 +314,26 @@ export const getAttendanceReport = createServerFn({ method: "GET" })
 
     return { report, totalEvents };
   });
+
+export const getExportData = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const [players, events, attendances, permissions] = await Promise.all([
+      context.supabase.from("players").select("*").eq("user_id", context.userId).order("name"),
+      context.supabase.from("events").select("*").eq("user_id", context.userId).order("event_date"),
+      context.supabase.from("attendances").select("*").eq("user_id", context.userId),
+      context.supabase.from("permissions").select("*").eq("user_id", context.userId).order("permission_date"),
+    ]);
+
+    if (players.error) throw players.error;
+    if (events.error) throw events.error;
+    if (attendances.error) throw attendances.error;
+    if (permissions.error) throw permissions.error;
+
+    return {
+      players: players.data ?? [],
+      events: events.data ?? [],
+      attendances: attendances.data ?? [],
+      permissions: permissions.data ?? [],
+    };
+  });
