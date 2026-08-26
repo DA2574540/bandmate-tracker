@@ -1,4 +1,0 @@
-[[redirects]]
-from = "/*"
-to = "DA2574540/bandmate-tracker/src/start.ts"
-status = 200
